@@ -1,0 +1,16 @@
+stages:
+  - Deploy
+
+production-deployment:
+  image: lorisleiva/laravel-docker:8.0
+  stage: Deploy
+  script:
+    - "which ssh-agent || ( apt-get update -y && apt-get install openssh-client -y )"
+    - eval $(ssh-agent -s)
+    - ssh-add <(echo "$SSH_PRIVATE_KEY")
+    - mkdir -p ~/.ssh
+    - '[[ -f /.dockerenv ]] && echo -e "Host *\n\tStrictHostKeyChecking no\n\n" > ~/.ssh/config'
+    - composer update
+    - vendor/bin/envoy run deploy
+  only:
+    - master
